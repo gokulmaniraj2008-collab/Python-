@@ -17,11 +17,10 @@ Open `index.html` in a modern browser for the existing web animation studio. The
 
 The Hugging Face adapter uses the Inference Providers router. Create a Hugging Face access token with permission to call inference providers, then set it as an environment variable named `HF_TOKEN`. Never commit the token or put it in browser JavaScript.
 
-    # Linux/macOS shell example
     export HF_TOKEN="your-token"
     python -m creative_studio generate-image --prompt "A cinematic tiny robot in a rainy neon city" --output outputs/robot.png
 
-You can select another compatible image model with `--model` or the `HF_IMAGE_MODEL` environment variable. The default is `black-forest-labs/FLUX.1-schnell`. Model access, provider availability, usage quotas, and pricing can change; this is not guaranteed to be free. The image command requires an internet connection and a valid token.
+You can select another compatible image model with `--model` or the `HF_IMAGE_MODEL` environment variable. The default is `black-forest-labs/FLUX.1-schnell`. Model access, provider availability, usage quotas, and pricing can change; this is not guaranteed to be free.
 
 ## Create a video from images
 
@@ -29,23 +28,29 @@ Put image frames in one folder using sortable names such as `001.png`, `002.png`
 
     python -m creative_studio images-to-video --input-dir frames --output outputs/scene.mp4 --fps 24
 
-This assembles the frames into an MP4 with OpenCV. It is an image-to-video assembly workflow, not a text-to-video diffusion model. A future phase can add dedicated video-generation providers.
+This assembles an ordered image sequence into MP4. It does not generate new video content with a diffusion model.
+
+## Animate a still image (Phase 3)
+
+Create a cinematic pan-and-zoom (Ken Burns) animation from a single image. Choose a zoom range, duration, frame rate, and easing curve:
+
+    python -m creative_studio animate-image --input photo.png --output outputs/cinematic.mp4 --duration 5 --fps 24 --start-zoom 1.0 --end-zoom 1.25 --easing ease-in-out
+
+Supported easing curves: `linear`, `ease-in`, `ease-out`, and `ease-in-out`. This is deterministic Python animation—not text-to-video AI. It runs with the existing Pillow, NumPy, and OpenCV dependencies and does not download a model.
 
 ## Architecture
 
     creative_studio/
       providers/          # provider protocol and Hugging Face adapter
-      generation.py       # provider-independent generation workflow
+      generation.py       # provider-independent image generation
       image.py            # Pillow image utilities
       video.py            # OpenCV MP4 and image-sequence assembly
-      animation.py        # timeline utilities
+      animation.py        # timeline, easing, and pan/zoom renderer
       cli.py              # command-line interface
     tests/                # offline unit tests
 
-## Dependencies and runtime notes
+## Runtime notes
 
-NumPy, OpenCV, and Pillow are the lightweight core. No heavyweight model is downloaded during installation or CI. The Hugging Face adapter uses Python's standard library for HTTP requests. PyTorch, ComfyUI, and Blender remain optional separate runtimes for later phases.
+No heavyweight model is downloaded during installation or CI. Hugging Face image generation needs a user-provided token; model access, quotas, and pricing are controlled by the provider and are not guaranteed to be free. Vercel continues to serve the static website; Python generation and tests run locally or in GitHub Actions. Never expose `HF_TOKEN` in browser code.
 
-Vercel continues to serve the static website; Python generation and tests run locally or in GitHub Actions. Vercel static hosting is not a persistent Python backend. Never expose `HF_TOKEN` in a static website or client-side code.
-
-The Phase 2 changes add modular generation support without changing the existing `index.html` Stick Hero website or `create_stick_hero.py` generator.
+Phase 3 adds the animation engine and CLI without changing the existing `index.html` Stick Hero website or `create_stick_hero.py` generator.
