@@ -9,6 +9,7 @@ from creative_studio.animation import render_ken_burns
 from creative_studio.generation import generate_image
 from creative_studio.providers.huggingface import HuggingFaceImageProvider
 from creative_studio.video import create_video_from_images
+from creative_studio.video_generation import HTTPVideoProvider, generate_video
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -30,6 +31,14 @@ def build_parser() -> argparse.ArgumentParser:
     video_parser.add_argument("--input-dir", required=True, help="directory of ordered image frames")
     video_parser.add_argument("--output", default="outputs/generated-video.mp4")
     video_parser.add_argument("--fps", type=int, default=24)
+
+    text_video = commands.add_parser("generate-video", help="submit and download a text-to-video job")
+    text_video.add_argument("--prompt", required=True)
+    text_video.add_argument("--output", default="outputs/generated-video.mp4")
+    text_video.add_argument("--duration", type=int, default=5)
+    text_video.add_argument("--aspect-ratio", choices=("16:9", "9:16", "1:1"), default="16:9")
+    text_video.add_argument("--poll-interval", type=float, default=5.0)
+    text_video.add_argument("--max-wait", type=float, default=900.0)
 
     animation_parser = commands.add_parser("animate-image", help="create a cinematic pan/zoom MP4 from one image")
     animation_parser.add_argument("--input", required=True, help="source image path")
@@ -65,6 +74,16 @@ def main(argv: list[str] | None = None) -> int:
             if path.is_file() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
         )
         result = create_video_from_images(image_paths, args.output, fps=args.fps)
+        print(f"Video saved: {result}")
+        return 0
+
+    if args.command == "generate-video":
+        provider = HTTPVideoProvider()
+        result = generate_video(
+            provider, args.prompt, args.output, duration_seconds=args.duration,
+            aspect_ratio=args.aspect_ratio, poll_interval=args.poll_interval,
+            max_wait_seconds=args.max_wait,
+        )
         print(f"Video saved: {result}")
         return 0
 
