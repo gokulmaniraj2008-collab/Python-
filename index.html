@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stick Hero Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#080b12;--panel:#111827;--line:#263247;--muted:#9aa9bd;--white:#f8fafc;--accent:#8b5cf6;--cyan:#22d3ee}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#1e2450 0,#080b12 55%);color:var(--white);font:15px system-ui, sans-serif;min-height:100vh}
+main{max-width:1050px;margin:auto;padding:28px 18px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.brand{font-weight:850;font-size:clamp(22px,4vw,32px);letter-spacing:-1px}.brand span{color:var(--cyan)}.tag{color:#c4b5fd;border:1px solid #51417b;border-radius:99px;padding:6px 11px;font-size:12px}
+.sub{color:var(--muted);margin:8px 0 22px}.stage{background:linear-gradient(145deg,#f8fafc,#e2e8f0);border-radius:22px;overflow:hidden;box-shadow:0 22px 70px #0008;position:relative}.stage canvas{display:block;width:100%;height:auto;aspect-ratio:16/10}.stage-label{position:absolute;top:15px;left:16px;color:#111827;background:#ffffffc9;padding:7px 11px;border-radius:99px;font-size:12px;font-weight:750}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}.panel{background:#111827;border:1px solid var(--line);border-radius:16px;padding:15px}.panel h2{font-size:14px;margin:0 0 12px;color:#dbeafe}.btn,select{border:1px solid #334155;border-radius:12px;padding:11px 13px;background:#1e293b;color:#f8fafc;font-weight:650;cursor:pointer;width:100%;font:inherit}.btn:hover{border-color:var(--cyan)}.btn.primary{background:linear-gradient(110deg,#7c3aed,#2563eb);border:0}.btn.record{background:#7f1d1d;border:0}.btn:disabled{opacity:.45;cursor:not-allowed}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hint{color:var(--muted);font-size:12px;line-height:1.6;margin:11px 0 0}.footer{color:#64748b;font-size:12px;text-align:center;margin-top:20px}
+@media(max-width:700px){main{padding:18px 12px 35px}.controls{grid-template-columns:1fr 1fr}.panel{padding:12px}}@media(max-width:380px){.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main>
+<header class="top"><div class="brand">STICK<span>HERO</span> STUDIO</div><div class="tag">PYTHON PROJECT · WEB ANIMATION</div></header>
+<p class="sub">Create a tiny hero story, control the movement, and record your animation.</p>
+<section class="stage"><div class="stage-label" id="sceneLabel">THE HERO AWAKENS</div><canvas id="scene" width="960" height="600" aria-label="Animated black stick figure hero"></canvas></section>
+<section class="controls">
+<div class="panel"><h2>Animation</h2><div class="actions"><button class="btn primary" id="play">Ⅱ Pause</button><button class="btn" id="reset">↺ Reset</button></div><p class="hint">Play or pause the character animation.</p></div>
+<div class="panel"><h2>Movement</h2><select id="move"><option value="story">Hero story</option><option value="run">Run</option><option value="jump">Jump</option><option value="victory">Hero pose</option><option value="walk">Walk</option></select><p class="hint">Switch the stick hero's movement.</p></div>
+<div class="panel"><h2>Speed</h2><select id="speed"><option value="0.65">Slow</option><option value="1" selected>Normal</option><option value="1.5">Fast</option><option value="2">Very fast</option></select><p class="hint">Change animation playback speed.</p></div>
+<div class="panel"><h2>Export video</h2><button class="btn record" id="record">● Record WebM</button><p class="hint" id="recordHint">Record the canvas animation in your browser. No upload required.</p></div>
+</section>
+<p class="footer">Made with HTML Canvas + JavaScript · Mobile friendly · No external libraries</p>
+</main>
+<script>
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);let playing=true,elapsed=0,last=0,recording=null,recorder=null,chunks=[];
+const W=960,H=600;
+function line(a,b,w=10){ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.lineWidth=w;ctx.lineCap='round';ctx.strokeStyle='#080b12';ctx.stroke()}
+function circle(x,y,r,fill='#080b12',width=0){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);if(width){ctx.lineWidth=width;ctx.strokeStyle=fill;ctx.stroke()}else{ctx.fillStyle=fill;ctx.fill()}}
+function pt(x,y,len,ang){return [x+Math.cos(ang)*len,y+Math.sin(ang)*len]}
+function draw(t){
+ const mode=$('move').value,cycle=t*2.7,run=mode==='run'||(mode==='story'&&t%10<5),jump=mode==='jump',victory=mode==='victory'||(mode==='story'&&t%10>=5);
+ ctx.clearRect(0,0,W,H);
+ const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#f8fafc');sky.addColorStop(1,'#dbeafe');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#cbd5e1';ctx.beginPath();ctx.arc(760,115,48,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#94a3b8';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(60,495);ctx.lineTo(900,495);ctx.stroke();
+ for(let i=0;i<8;i++){ctx.fillStyle='#cbd5e1';ctx.fillRect(i*140+((t*35)%140),500,45,4)}
+ let x=480+(run?Math.sin(cycle)*15:0),bob=run?Math.abs(Math.sin(cycle*2))*9:0;
+ if(jump)bob=Math.abs(Math.sin(t*2.5))*105;
+ const head=[x,190-bob],sh=[x,238-bob],hip=[x,355-bob];
+ circle(...head,35,'#080b12',9);line(sh,hip,12);
+ let le,re,lh,rh,lk,lf,rk,rf;
+ if(victory){
+  le=[x-68,190-bob];lh=[x-110,125-bob];re=[x+62,310-bob];rh=[x+110,335-bob];
+  lk=[x-43,415-bob];lf=[x-75,485-bob];rk=[x+43,415-bob];rf=[x+75,485-bob];
+ }else{
+  let a=Math.sin(cycle),swing=run?.95:.28;
+  le=pt(...sh,62,Math.PI/2+a*swing);lh=pt(...le,56,Math.PI/2-a*swing);
+  re=pt(...sh,62,Math.PI/2+Math.PI-a*swing);rh=pt(...re,56,Math.PI/2+Math.PI+a*swing);
+  lk=pt(...hip,72,Math.PI/2+a*swing);lf=pt(...lk,75,Math.PI/2-a*swing*.7);
+  rk=pt(...hip,72,Math.PI/2+Math.PI-a*swing);rf=pt(...rk,75,Math.PI/2+Math.PI+a*swing*.7);
+ }
+ line(sh,le);line(le,lh);line(sh,re);line(re,rh);line(hip,lk);line(lk,lf);line(hip,rk);line(rk,rf);
+ circle(...lh,9);circle(...rh,9);
+ // Hero chest emblem
+ ctx.fillStyle='#8b5cf6';ctx.beginPath();ctx.moveTo(x,270-bob);ctx.lineTo(x+13,282-bob);ctx.lineTo(x,299-bob);ctx.lineTo(x-13,282-bob);ctx.closePath();ctx.fill();
+ if(victory){ctx.fillStyle='#1e293b';ctx.font='bold 28px system-ui';ctx.textAlign='center';ctx.fillText('HERO MODE',480,80)}
+}
+function frame(now){if(!last)last=now;let dt=Math.min((now-last)/1000,.05);last=now;if(playing)elapsed+=dt*Number($('speed').value);draw(elapsed);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Ⅱ Pause':'▶ Play'};
+$('reset').onclick=()=>{elapsed=0;playing=true;$('play').textContent='Ⅱ Pause'};
+$('move').onchange=()=>{$('sceneLabel').textContent=$('move').selectedOptions[0].text.toUpperCase()};
+$('record').onclick=()=>{
+ if(recording){recorder.stop();return}
+ if(!canvas.captureStream||!window.MediaRecorder){$('recordHint').textContent='Recording is not supported in this browser.';return}
+ const stream=canvas.captureStream(30);let mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+ chunks=[];try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch(e){recorder=new MediaRecorder(stream)}
+ recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+ recorder.onstop=()=>{const blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='stick-hero-animation.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$('record').textContent='● Record WebM';$('record').classList.add('record');$('recordHint').textContent='Your WebM video was saved to your device.';stream.getTracks().forEach(track=>track.stop());recording=null};
+ recorder.start();recording=true;$('record').textContent='■ Stop & Save';$('record').classList.remove('record');$('recordHint').textContent='Recording… tap Stop & Save when finished.';
+};
+</script></body></html>
