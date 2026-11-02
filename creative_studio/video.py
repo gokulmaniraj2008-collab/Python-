@@ -4,6 +4,7 @@ from pathlib import Path
 from collections.abc import Iterable
 import cv2
 import numpy as np
+from PIL import Image
 
 
 def write_video(frames: Iterable[np.ndarray], output: str | Path,
@@ -38,6 +39,29 @@ def write_video(frames: Iterable[np.ndarray], output: str | Path,
         writer.release()
 
     return output_path
+
+
+def create_video_from_images(image_paths: Iterable[str | Path],
+                             output: str | Path, fps: int = 24) -> Path:
+    """Assemble an ordered sequence of image files into an MP4 video."""
+    paths = [Path(path) for path in image_paths]
+    if not paths:
+        raise ValueError("at least one image path is required")
+
+    with Image.open(paths[0]) as first_image:
+        size = first_image.size
+    if size[0] <= 0 or size[1] <= 0:
+        raise ValueError("images must have non-zero dimensions")
+
+    def frames() -> Iterable[np.ndarray]:
+        for path in paths:
+            with Image.open(path) as image:
+                if image.size != size:
+                    raise ValueError("all source images must have the same dimensions")
+                rgb = image.convert("RGB")
+                yield cv2.cvtColor(np.asarray(rgb), cv2.COLOR_RGB2BGR)
+
+    return write_video(frames(), output, fps=fps)
 
 
 def _validate_frame(frame: np.ndarray) -> None:
