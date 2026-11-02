@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, "feature/**"]
   pull_request:
-    branches: [main, "feature/phase-2-ai-generation"]
+    branches: [main, "feature/phase-2-ai-generation", "feature/phase-3-animation-studio"]
 
 permissions:
   contents: read

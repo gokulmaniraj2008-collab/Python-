@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131b">
+<meta name="description" content="Python Creative AI Studio — prepare image generation and animation workflows.">
+<title>Creative Studio · Python</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e14;--panel:#141a24;--panel2:#1a2230;--line:#293447;--text:#edf2fa;--muted:#9aa8bb;--accent:#8b9cff;--accent2:#b8c2ff;--good:#6dd6a5}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#20284a 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{max-width:1100px;margin:auto;padding:26px 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#8798ff,#5ed7c2);display:grid;place-items:center;color:#10131b;font-weight:900;font-size:20px}.eyebrow{color:var(--accent2);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}h1{font-size:20px;margin:0}.status{border:1px solid var(--line);border-radius:99px;padding:7px 11px;color:var(--muted);font-size:12px}
+main{max-width:1100px;margin:auto;padding:12px 20px 56px}.intro{margin:14px 0 24px}.intro h2{font-size:clamp(26px,5vw,42px);line-height:1.1;max-width:720px;margin:0 0 10px}.intro p{color:var(--muted);max-width:660px;margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:linear-gradient(180deg,#171f2c,#121822);border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}.card h3{font-size:17px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 17px}
+label{display:block;color:#c9d3e2;font-size:13px;font-weight:650;margin:13px 0 6px}input,textarea,select{width:100%;border:1px solid #344258;border-radius:11px;background:#0d131d;color:var(--text);padding:12px;font:inherit;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--accent)}textarea{min-height:100px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.drop{border:1px dashed #4b5a73;border-radius:14px;padding:17px;text-align:center;background:#101722;color:var(--muted)}.drop input{border:0;background:transparent;padding:8px 0}.preview{display:none;margin-top:12px;border-radius:13px;overflow:hidden;background:#080b10;max-height:260px}.preview img{display:block;max-width:100%;max-height:260px;margin:auto;object-fit:contain}
+button{border:0;border-radius:11px;background:var(--accent);color:#10131b;font:700 14px system-ui;padding:11px 15px;cursor:pointer}button.secondary{background:#263246;color:var(--text);border:1px solid #3a4961}button:active{transform:translateY(1px)}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}.output{margin-top:15px;background:#0a1018;border:1px solid #2c3a4f;border-radius:13px;padding:14px}.output-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.output small{color:var(--muted)}pre{white-space:pre-wrap;overflow-wrap:anywhere;color:#dce5ff;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;margin:12px 0 0}
+.note{border-left:3px solid var(--accent);padding:10px 13px;background:#171e2c;border-radius:0 10px 10px 0;color:var(--muted);font-size:12px;margin-top:16px}.wide{grid-column:1/-1}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{background:#101722;border:1px solid var(--line);border-radius:13px;padding:14px}.step b{display:block;margin-bottom:4px}.step span{color:var(--muted);font-size:12px}
+footer{max-width:1100px;margin:auto;padding:0 20px 30px;color:var(--muted);font-size:12px}
+@media(max-width:760px){header{padding:18px 16px 12px}main{padding:10px 14px 40px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.steps{grid-template-columns:1fr}.card{padding:16px}.status{display:none}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">✦</div><div><div class="eyebrow">Python Creative AI</div><h1>Creative Studio</h1></div></div><div class="status">Browser workspace · v0.4</div></header>
+<main>
+<section class="intro"><div class="eyebrow">Create · Animate · Export</div><h2>Your creative workflow, in one place.</h2><p>Prepare AI image prompts, preview source images, and build animation commands from your phone. Python performs generation on your local or hosted Python runtime.</p></section>
+<div class="grid">
+<section class="card">
+<h3>01 / AI image generation</h3><p class="sub">Write a prompt and prepare the Python command.</p>
+<label for="prompt">Image prompt</label><textarea id="prompt" maxlength="2000" placeholder="A cinematic black stick-figure hero standing on a rooftop at sunset..."></textarea>
+<label for="model">Image model</label><input id="model" value="black-forest-labs/FLUX.1-schnell" autocomplete="off">
+<label for="image-output">Output file</label><input id="image-output" value="outputs/generated-image.png">
+<div class="actions"><button id="make-image">Build image command</button></div>
+<div class="output"><div class="output-head"><b>Python command</b><small>HF_TOKEN stays outside browser</small></div><pre id="image-command">Enter a prompt, then build the command.</pre><div class="actions"><button class="secondary" id="copy-image">Copy command</button></div></div>
+<div class="note">Image generation requires a Hugging Face token set as HF_TOKEN in your Python environment. Provider access, quotas, and pricing may change; free usage is not guaranteed.</div>
+</section>
+<section class="card">
+<h3>02 / Image workspace</h3><p class="sub">Choose an image to preview before animating it.</p>
+<div class="drop"><label for="source-image">Select image from your device</label><input id="source-image" type="file" accept="image/png,image/jpeg,image/webp"><div id="file-name">PNG, JPG or WEBP</div></div>
+<div class="preview" id="preview-wrap"><img id="preview-image" alt="Selected image preview"></div>
+<div class="row"><div><label for="duration">Duration (seconds)</label><input id="duration" type="number" min="0.1" max="120" step="0.5" value="5"></div><div><label for="fps">Frame rate</label><select id="fps"><option>24</option><option>30</option><option>60</option></select></div></div>
+<div class="row"><div><label for="start-zoom">Start zoom</label><input id="start-zoom" type="number" min="1" max="5" step=".05" value="1"></div><div><label for="end-zoom">End zoom</label><input id="end-zoom" type="number" min="1" max="5" step=".05" value="1.25"></div></div>
+<label for="easing">Motion easing</label><select id="easing"><option>ease-in-out</option><option>linear</option><option>ease-in</option><option>ease-out</option></select>
+<label for="video-output">Video output</label><input id="video-output" value="outputs/cinematic.mp4">
+<div class="actions"><button id="make-animation">Build animation command</button></div>
+<div class="output"><div class="output-head"><b>Python command</b><small>Uses Pillow + OpenCV</small></div><pre id="animation-command">Select an image, then build the command.</pre><div class="actions"><button class="secondary" id="copy-animation">Copy command</button></div></div>
+</section>
+<section class="card wide">
+<h3>03 / Run your workflow</h3><p class="sub">The website prepares commands. Run them in your Python environment; generated files are saved there.</p>
+<div class="steps"><div class="step"><b>1. Install</b><span>pip install -r requirements.txt</span></div><div class="step"><b>2. Run</b><span>Paste a copied command into your Python terminal.</span></div><div class="step"><b>3. Export</b><span>Find your PNG or MP4 in the output folder.</span></div></div>
+<div class="note">This is a static Vercel frontend, not a Python server. It does not execute code, upload your image to a cloud AI service, or store API keys. Existing Stick Hero Studio remains available at the homepage.</div>
+</section>
+</div>
+</main>
+<footer>Python Creative AI Studio · Mobile-friendly browser workspace · Keep API tokens private.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const shellQuote=value=>"'"+String(value).replace(/'/g,"'\\''")+"'";
+let selectedFile="";
+let objectUrl="";
+$("source-image").addEventListener("change",event=>{
+ const file=event.target.files&&event.target.files[0];
+ if(!file)return;
+ if(objectUrl)URL.revokeObjectURL(objectUrl);
+ objectUrl=URL.createObjectURL(file);
+ selectedFile=file.name;
+ $("preview-image").src=objectUrl;
+ $("preview-wrap").style.display="block";
+ $("file-name").textContent=file.name+" · "+Math.round(file.size/1024)+" KB";
+});
+$("make-image").addEventListener("click",()=>{
+ const prompt=$("prompt").value.trim();
+ if(!prompt){$("image-command").textContent="Please enter an image prompt first.";return;}
+ const model=$("model").value.trim()||"black-forest-labs/FLUX.1-schnell";
+ const output=$("image-output").value.trim()||"outputs/generated-image.png";
+ $("image-command").textContent="python -m creative_studio generate-image --prompt "+shellQuote(prompt)+" --model "+shellQuote(model)+" --output "+shellQuote(output);
+});
+$("make-animation").addEventListener("click",()=>{
+ if(!selectedFile){$("animation-command").textContent="Please select an image first.";return;}
+ const duration=Number($("duration").value),fps=Number($("fps").value),start=Number($("start-zoom").value),end=Number($("end-zoom").value);
+ if(!(duration>0&&duration<=120&&start>=1&&end>=1&&start<=5&&end<=5)){$("animation-command").textContent="Check duration (0–120) and zoom values (1–5).";return;}
+ $("animation-command").textContent="python -m creative_studio animate-image --input "+shellQuote(selectedFile)+" --output "+shellQuote($("video-output").value.trim()||"outputs/cinematic.mp4")+" --duration "+duration+" --fps "+fps+" --start-zoom "+start+" --end-zoom "+end+" --easing "+$("easing").value;
+});
+async function copyText(id){const value=$(id).textContent;if(!value||value.startsWith("Enter")||value.startsWith("Select")||value.startsWith("Please")||value.startsWith("Check"))return;try{await navigator.clipboard.writeText(value);const button=id==="image-command"?$("copy-image"):$("copy-animation");const old=button.textContent;button.textContent="Copied ✓";setTimeout(()=>button.textContent=old,1500);}catch(error){const range=document.createRange();range.selectNodeContents($(id));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}}
+$("copy-image").addEventListener("click",()=>copyText("image-command"));
+$("copy-animation").addEventListener("click",()=>copyText("animation-command"));
+</script>
+</body>
+</html>
