@@ -1,0 +1,2 @@
+# Optional text-to-video backend dependency; install only when running the API worker.
+huggingface_hub>=0.33,<2
