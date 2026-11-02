@@ -45,7 +45,21 @@ footer{max-width:1100px;margin:auto;padding:0 20px 30px;color:var(--muted);font-
 <div class="output"><div class="output-head"><b>Python command</b><small>Uses Pillow + OpenCV</small></div><pre id="animation-command">Select an image, then build the command.</pre><div class="actions"><button class="secondary" id="copy-animation">Copy command</button></div></div>
 </section>
 <section class="card wide">
-<h3>03 / Run your workflow</h3><p class="sub">The website prepares commands. Run them in your Python environment; generated files are saved there.</p>
+<h3>03 / Text-to-video generation</h3><p class="sub">Prepare a video job command. A compatible provider and private API key are required in your Python runtime.</p>
+<label for="video-prompt">Describe your video</label><textarea id="video-prompt" maxlength="2000" placeholder="A cinematic black stickman hero walks through a rainy neon city..."></textarea>
+<div class="row"><div><label for="video-duration">Duration (seconds)</label><select id="video-duration"><option>5</option><option>8</option><option>10</option><option>15</option></select></div><div><label for="video-ratio">Aspect ratio</label><select id="video-ratio"><option>16:9</option><option>9:16</option><option>1:1</option></select></div></div>
+<label for="generated-video-output">Output file</label><input id="generated-video-output" value="outputs/generated-video.mp4">
+<div class="actions"><button id="make-video">Build video job command</button></div>
+<div class="output"><div class="output-head"><b>Python command</b><small>VIDEO_API_KEY stays private</small></div><pre id="video-command">Enter a video prompt, then build the command.</pre><div class="actions"><button class="secondary" id="copy-video">Copy command</button></div></div>
+<div class="note">This prepares a real asynchronous provider request through Python. It will only run after VIDEO_API_URL and VIDEO_API_KEY are configured for a provider that implements the documented REST contract. Provider charges and free quotas vary.</div>
+</section>
+<section class="card wide">
+<h3>04 / Video gallery preview</h3><p class="sub">Select MP4 or WebM files saved on this device to preview them here.</p>
+<label for="gallery-files">Choose video files</label><input id="gallery-files" type="file" accept="video/mp4,video/webm,video/quicktime" multiple>
+<div id="video-gallery" class="steps"><div class="step"><b>Your gallery is empty</b><span>Select locally saved videos to preview them. Files are not uploaded.</span></div></div>
+</section>
+<section class="card wide">
+<h3>05 / Run your workflow</h3><p class="sub">The website prepares commands. Run them in your Python environment; generated files are saved there.</p>
 <div class="steps"><div class="step"><b>1. Install</b><span>pip install -r requirements.txt</span></div><div class="step"><b>2. Run</b><span>Paste a copied command into your Python terminal.</span></div><div class="step"><b>3. Export</b><span>Find your PNG or MP4 in the output folder.</span></div></div>
 <div class="note">This is a static Vercel frontend, not a Python server. It does not execute code, upload your image to a cloud AI service, or store API keys. Existing Stick Hero Studio remains available at the homepage.</div>
 </section>
@@ -80,9 +94,31 @@ $("make-animation").addEventListener("click",()=>{
  if(!(duration>0&&duration<=120&&start>=1&&end>=1&&start<=5&&end<=5)){$("animation-command").textContent="Check duration (0–120) and zoom values (1–5).";return;}
  $("animation-command").textContent="python -m creative_studio animate-image --input "+shellQuote(selectedFile)+" --output "+shellQuote($("video-output").value.trim()||"outputs/cinematic.mp4")+" --duration "+duration+" --fps "+fps+" --start-zoom "+start+" --end-zoom "+end+" --easing "+$("easing").value;
 });
-async function copyText(id){const value=$(id).textContent;if(!value||value.startsWith("Enter")||value.startsWith("Select")||value.startsWith("Please")||value.startsWith("Check"))return;try{await navigator.clipboard.writeText(value);const button=id==="image-command"?$("copy-image"):$("copy-animation");const old=button.textContent;button.textContent="Copied ✓";setTimeout(()=>button.textContent=old,1500);}catch(error){const range=document.createRange();range.selectNodeContents($(id));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}}
+async function copyText(id){const value=$(id).textContent;if(!value||value.startsWith("Enter")||value.startsWith("Select")||value.startsWith("Please")||value.startsWith("Check"))return;try{await navigator.clipboard.writeText(value);const button=id==="image-command"?$("copy-image"):id==="video-command"?$("copy-video"):$("copy-animation");const old=button.textContent;button.textContent="Copied ✓";setTimeout(()=>button.textContent=old,1500);}catch(error){const range=document.createRange();range.selectNodeContents($(id));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}}
 $("copy-image").addEventListener("click",()=>copyText("image-command"));
 $("copy-animation").addEventListener("click",()=>copyText("animation-command"));
+
+$("make-video").addEventListener("click",()=>{
+ const prompt=$("video-prompt").value.trim();
+ if(!prompt){$("video-command").textContent="Please enter a video prompt first.";return;}
+ const duration=Number($("video-duration").value),ratio=$("video-ratio").value;
+ const output=$("generated-video-output").value.trim()||"outputs/generated-video.mp4";
+ $("video-command").textContent="python -m creative_studio generate-video --prompt "+shellQuote(prompt)+" --duration "+duration+" --aspect-ratio "+ratio+" --output "+shellQuote(output);
+});
+$("copy-video").addEventListener("click",()=>copyText("video-command"));
+$("gallery-files").addEventListener("change",event=>{
+ const gallery=$("video-gallery");gallery.replaceChildren();
+ const files=Array.from(event.target.files||[]);
+ if(!files.length){gallery.textContent="No videos selected.";return;}
+ for(const file of files){
+  const card=document.createElement("div");card.className="step";
+  const title=document.createElement("b");title.textContent=file.name;
+  const meta=document.createElement("span");meta.textContent=Math.round(file.size/1024/1024*10)/10+" MB";
+  const player=document.createElement("video");player.controls=true;player.playsInline=true;player.preload="metadata";player.style.width="100%";player.style.marginTop="10px";player.style.borderRadius="10px";player.src=URL.createObjectURL(file);
+  card.append(title,meta,player);gallery.append(card);
+ }
+});
+
 </script>
 </body>
 </html>
